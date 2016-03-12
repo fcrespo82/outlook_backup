@@ -1,0 +1,68 @@
+<html>
+
+<head>
+    <style>
+        body {
+            text-align: center;
+        }
+        /*table {
+            border: 1px solid #CCC;
+            margin: 10px;
+            padding: 10px;
+            border-radius: 2px;
+            box-shadow: 0px 0px 10px #AAA;
+        }*/
+        #emails {
+            font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+            border-collapse: collapse;
+            width: 95%;
+            box-shadow: 0px 0px 10px #AAA;
+            margin-left: auto; 
+            margin-right: auto;
+        }
+
+        #emails td, #emails th {
+            border: 1px solid #ddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        #emails tr:nth-child(even){background-color: #f2f2f2}
+
+        #emails tr:hover {background-color: #ddd;}
+
+        #emails th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            background-color: #1C50AF;
+            color: white;
+        }
+
+    </style>
+</head>
+
+<body>
+    <h1>Lista de e-mails</h1>
+    <table id="emails">
+        <tr>
+            <th>De</th>
+            <th>Assunto</th>
+            <th>Recebida em</th>
+            <th>Ações</th>
+            <th>Anexos</th>
+        </tr>
+        {% for message in messages %}
+        <tr>
+            <td>{{ message.From.EmailAddress.Name }}</td>
+            <td>{{ message.Subject }}</td>
+            <td>{{ message.ReceivedDateTime }}</td>
+            <td>{% url 'outlook_backup_app:preview' as the_url %}
+                <a href="{{ the_url }}?message_id={{ message.Id }}">Ver</a>
+            </td>
+            <td>{{ message.HasAttachments }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+
+</html>

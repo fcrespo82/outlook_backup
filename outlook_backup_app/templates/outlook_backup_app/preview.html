@@ -1,0 +1,61 @@
+<html>
+
+<head>
+    <style>
+        .email_body {
+            border: 1px solid #CCC;
+            margin: 10px;
+            padding: 10px;
+            border-radius: 2px;
+            box-shadow: 0px 0px 10px #AAA; 
+        }
+        
+        .recipients {
+            color: #777;
+        }
+        
+        .data {
+            color: #777;
+            float: right;
+        }
+        .info {
+            font-size: 1.4em;
+        }
+        
+        .subject {
+            padding: 12px;
+            background-color: #1C50AF;
+            color: white;
+        }
+    </style>
+</head>
+{% load app_filters %}
+
+<body>
+    <h1 class="subject">{{ message.Subject }}</h1>
+
+    <div class="info">
+        <span class="recipients">{{ message.From.EmailAddress.Name }} ({{ message.From.EmailAddress.Address }})</span>
+        <span class="data">{{ message.ReceivedDateTime|parse_date:"%Y-%m-%dT%H:%M:%SZ"|date:"d/m/Y H:i:s"}}</span>
+    </div>
+    <br/>
+    <div>Para: {% for recipient in message.ToRecipients %}
+        <span class="recipients">{{ recipient.EmailAddress.Name }} ({{ recipient.EmailAddress.Address }})</span>, 
+        {% endfor %}
+    </div>
+    <div>CC: {% for recipient in message.CcRecipients %}
+        <span class="recipients">{{ recipient.EmailAddress.Name }} ({{ recipient.EmailAddress.Address }})</span>, 
+        {% endfor %}
+    </div>
+    <div>BCC: {% for recipient in message.BccRecipients %}
+        <span class="recipients">{{ recipient.EmailAddress.Name }} ({{ recipient.EmailAddress.Address }})</span>, 
+        {% endfor %}
+    </div>
+    <br/>
+    <div class="email_body">
+        {% autoescape off %} {{ message.Body.Content }} {% endautoescape %}
+    </div>
+
+</body>
+
+</html>
