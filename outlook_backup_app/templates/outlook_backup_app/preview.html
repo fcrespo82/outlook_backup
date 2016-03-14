@@ -1,37 +1,13 @@
 <html>
 
 <head>
-    <style>
-        .email_body {
-            border: 1px solid #CCC;
-            margin: 10px;
-            padding: 10px;
-            border-radius: 2px;
-            box-shadow: 0px 0px 10px #AAA; 
-        }
-        
-        .recipients {
-            color: #777;
-        }
-        
-        .data {
-            color: #777;
-            float: right;
-        }
-        .info {
-            font-size: 1.4em;
-        }
-        
-        .subject {
-            padding: 12px;
-            background-color: #1C50AF;
-            color: white;
-        }
-    </style>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/static/css/preview.css">
 </head>
-{% load app_filters %}
 
 <body>
+    {% load app_filters %}
+
     <h1 class="subject">{{ message.Subject }}</h1>
 
     <div class="info">
@@ -49,6 +25,13 @@
     </div>
     <div>BCC: {% for recipient in message.BccRecipients %}
         <span class="recipients">{{ recipient.EmailAddress.Name }} ({{ recipient.EmailAddress.Address }})</span>, 
+        {% endfor %}
+    </div>
+    <br/>
+    <div>{% for attachment in attachments %}
+        <div id="{{ attachment.Name }}" class="attachment">
+            <span><i class="fa fa-paperclip"></i> {{ attachment.Name }}</span>
+        </div>
         {% endfor %}
     </div>
     <br/>

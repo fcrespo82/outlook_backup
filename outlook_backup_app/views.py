@@ -2,7 +2,9 @@ from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from outlook_backup_app.authhelper import get_signin_url, get_token_from_code, get_user_email_from_id_token
-from outlook_backup_app.outlookservice import get_my_messages, get_message
+from outlook_backup_app.outlookservice import get_my_messages, get_message, get_message_attachments
+
+from outlook_backup_app.message_saver import save_message
 # Create your views here.
 from django.http import HttpResponse, HttpResponseRedirect
 
@@ -43,6 +45,16 @@ def preview(request):
     
     message = get_message(access_token, user_email, message_id)
     
+    attachments = get_message_attachments(access_token, user_email, message_id)
+    
     #return HttpResponse("Message: {0}".format(message))
-    context = { 'message': message  }
-    return render(request, 'outlook_backup_app/preview.html', context)
+    context = { 'message': message, 'attachments': attachments }
+    
+    
+    
+    response = render(request, 'outlook_backup_app/preview.html', context)
+    
+    save_message(message, response.content)
+    
+    return response
+
