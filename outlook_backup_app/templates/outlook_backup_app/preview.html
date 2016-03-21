@@ -29,9 +29,9 @@
     </div>
     <br/>
     <div>{% for attachment in attachments %}
-        <div id="{{ attachment.Name }}" class="attachment">
+        <a id="{{ attachment.Name }}" class="attachment" href="/output/{{ message.Subject }}/{{ attachment.Name }}">
             <span><i class="fa fa-paperclip"></i> {{ attachment.Name }}</span>
-        </div>
+        </a>
         {% endfor %}
     </div>
     <br/>

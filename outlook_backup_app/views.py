@@ -4,9 +4,11 @@ from django.core.urlresolvers import reverse
 from outlook_backup_app.authhelper import get_signin_url, get_token_from_code, get_user_email_from_id_token
 from outlook_backup_app.outlookservice import get_my_messages, get_message, get_message_attachments
 
-from outlook_backup_app.message_saver import save_message
+from outlook_backup_app.message_saver import save_message, save_attachments
 # Create your views here.
 from django.http import HttpResponse, HttpResponseRedirect
+import urlparse
+import json
 
 def home(request):
     redirect_uri = request.build_absolute_uri(reverse('outlook_backup_app:gettoken'))
@@ -33,8 +35,17 @@ def mail(request):
     if not access_token:
         return HttpResponseRedirect(reverse('outlook_backup_app:home'))
     else:
-        messages = get_my_messages(access_token, user_email)
-        context = { 'messages': messages['value'] }
+        next_link=""
+        previous_link=request.META['QUERY_STRING']
+        if request.META['QUERY_STRING']:
+            parameters = urlparse.parse_qs(request.META['QUERY_STRING'])
+            messages = get_my_messages(access_token, user_email, parameters)
+        else:
+            messages = get_my_messages(access_token, user_email)
+        if messages.has_key('@odata.nextLink'):
+            next_link = urlparse.urlparse(messages['@odata.nextLink']).query
+
+        context = { 'messages': messages['value'], 'next_link': next_link, 'previous_link': previous_link }
         return render(request, 'outlook_backup_app/mail.html', context)
     
 def preview(request):
@@ -55,6 +66,9 @@ def preview(request):
     response = render(request, 'outlook_backup_app/preview.html', context)
     
     save_message(message, response.content)
+    
+    if attachments:
+        save_attachments(message['Subject'], attachments)
     
     return response
 

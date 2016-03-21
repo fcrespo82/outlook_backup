@@ -36,14 +36,15 @@ def make_api_call(method, url, token, user_email, payload = None, parameters = N
 
     return response
     
-def get_my_messages(access_token, user_email):
+def get_my_messages(access_token, user_email, query_parameters=None):
     #get_messages_url = outlook_api_endpoint.format('/Me/Messages')
     get_messages_url = outlook_api_endpoint.format('/me/mailfolders/inbox/messages')
     # Use OData query parameters to control the results
     #  - Only first 10 results returned
     #  - Only return the ReceivedDateTime, Subject, and From fields
     #  - Sort the results by the ReceivedDateTime field in descending order
-    query_parameters = {'$top': '100',
+    if not query_parameters:
+        query_parameters = {'$top': '10',
                         '$select': 'ReceivedDateTime,Subject,From,HasAttachments',
                         '$orderby': 'ReceivedDateTime DESC'}
 
@@ -53,7 +54,7 @@ def get_my_messages(access_token, user_email):
         return r.json()
     else:
         return "{0}: {1}".format(r.status_code, r.text)
-        
+
 def get_message(access_token, user_email, message_id):
     #get_messages_url = outlook_api_endpoint.format('/Me/Messages')
     get_message_url = outlook_api_endpoint.format('/me/messages/{message_id}'.format(message_id=message_id))
@@ -70,7 +71,7 @@ def get_message(access_token, user_email, message_id):
         return "{0}: {1}".format(r.status_code, r.text)
         
 def get_message_attachments(access_token, user_email, message_id):
-    get_attachments_url = outlook_api_endpoint.format('/me/messages/{message_id}/attachments?$select=Name'.format(message_id=message_id))
+    get_attachments_url = outlook_api_endpoint.format('/me/messages/{message_id}/attachments?$select=Name,Content'.format(message_id=message_id))
     r = make_api_call('GET', get_attachments_url, access_token, user_email)
     if (r.status_code == requests.codes.ok):
         return r.json()['value']
