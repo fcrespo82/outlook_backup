@@ -29,7 +29,7 @@
     </div>
     <br/>
     <div>{% for attachment in attachments %}
-        <a id="{{ attachment.Name }}" class="attachment" href="/output/{{ message.Subject }}/{{ attachment.Name }}">
+        <a id="{{ attachment.Name }}" class="attachment" target="_blank" href="/{{ saved_path }}/{{ message.Subject | slugify }}/{{ attachment.filename }}">
             <span><i class="fa fa-paperclip"></i> {{ attachment.Name }}</span>
         </a>
         {% endfor %}

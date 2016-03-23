@@ -71,9 +71,17 @@ def get_message(access_token, user_email, message_id):
         return "{0}: {1}".format(r.status_code, r.text)
         
 def get_message_attachments(access_token, user_email, message_id):
-    get_attachments_url = outlook_api_endpoint.format('/me/messages/{message_id}/attachments?$select=Name,Content'.format(message_id=message_id))
+    get_attachments_url = outlook_api_endpoint.format('/me/messages/{message_id}/attachments'.format(message_id=message_id))
     r = make_api_call('GET', get_attachments_url, access_token, user_email)
     if (r.status_code == requests.codes.ok):
         return r.json()['value']
+    else:
+        return "{0}: {1}".format(r.status_code, r.text)
+
+def get_attachment(access_token, user_email, message_id, attachment_id):
+    get_attachment_url = outlook_api_endpoint.format('/me/messages/{message_id}/attachments/{attachment_id}'.format(message_id=message_id, attachment_id=attachment_id))
+    r = make_api_call('GET', get_attachment_url, access_token, user_email)
+    if (r.status_code == requests.codes.ok):
+        return r.json()
     else:
         return "{0}: {1}".format(r.status_code, r.text)
