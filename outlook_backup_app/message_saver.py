@@ -4,8 +4,8 @@ from django.template.defaultfilters import slugify
 from base64 import standard_b64decode
 from settings import DEFAULT_SAVE_DIR
 
-def save_file(filename, content):
-    final_full_path = os.path.join(DEFAULT_SAVE_DIR, filename)
+def save_file(filename, content, pasta):
+    final_full_path = os.path.join(DEFAULT_SAVE_DIR, pasta, filename)
     final_dir_path = os.path.dirname(final_full_path)
     if not os.path.exists(final_dir_path):
         os.makedirs(final_dir_path)
@@ -13,20 +13,24 @@ def save_file(filename, content):
     with open(final_full_path, mode="w") as the_file:
         the_file.write(content)
 
-def save_attachments(filename_for_the_message, attachment_list):
-    attachment_dir = filename_for_the_message.split(".")[0]
-    attachment_dir = slugify(attachment_dir)
-    if not os.path.exists(attachment_dir):
-        os.makedirs(attachment_dir)
-        os.chmod(attachment_dir, 0777)
+def save_attachments(message, attachment_list, pasta):
+    attachment_dir = message_name(message)
     for attachment in attachment_list:
         filename = attachment["Name"].split(".")
-        filename = "{0}.{1}".format(slugify(filename[0]),filename[1])
+        if len(filename) > 1:
+            filename = "{0}.{1}".format(slugify(filename[0]),filename[1])
+        else:
+            filename = "{0}".format(slugify(filename[0]))
         file_path = os.path.join(attachment_dir, filename)
+        
         content = standard_b64decode(attachment["ContentBytes"])
-        save_file(file_path, content)
+        save_file(file_path, content, pasta)
 
-def save_message(message, content):
+def save_message(message, content, pasta):
+    filename = "{0}.html".format(message_name(message))
+    save_file(filename, content, pasta)
+    
+def message_name(message):
     date_string = message['ReceivedDateTime']
     subject = message['Subject']
     subject = slugify(subject)
@@ -36,5 +40,5 @@ def save_message(message, content):
 
     date = datetime.strptime(date_string, date_format)
     date_string = date.strftime(date_format_string)
-    filename = u"{0}-{1}.html".format(date_string, subject)
-    save_file(filename, content)
+    filename = u"{0}-{1}".format(date_string, subject)
+    return filename

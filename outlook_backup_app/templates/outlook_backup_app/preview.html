@@ -2,7 +2,7 @@
 
 <head>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="/static/css/preview.css">
+    <link rel="stylesheet" href="{{root_path}}/static/css/preview.css">
 </head>
 
 <body>
@@ -15,21 +15,27 @@
         <span class="data">{{ message.ReceivedDateTime|parse_date:"%Y-%m-%dT%H:%M:%SZ"|date:"d/m/Y H:i:s"}}</span>
     </div>
     <br/>
+    {% if message.ToRecipients %}
     <div>Para: {% for recipient in message.ToRecipients %}
         <span class="recipients">{{ recipient.EmailAddress.Name }} ({{ recipient.EmailAddress.Address }})</span>, 
         {% endfor %}
     </div>
+    {% endif %}
+    {% if message.CcRecipients %}
     <div>CC: {% for recipient in message.CcRecipients %}
         <span class="recipients">{{ recipient.EmailAddress.Name }} ({{ recipient.EmailAddress.Address }})</span>, 
         {% endfor %}
     </div>
+    {% endif %}
+    {% if message.BccRecipients %}
     <div>BCC: {% for recipient in message.BccRecipients %}
         <span class="recipients">{{ recipient.EmailAddress.Name }} ({{ recipient.EmailAddress.Address }})</span>, 
         {% endfor %}
     </div>
+    {% endif %}
     <br/>
     <div>{% for attachment in attachments %}
-        <a id="{{ attachment.Name }}" class="attachment" target="_blank" href="/{{ saved_path }}/{{ message.Subject | slugify }}/{{ attachment.filename }}">
+        <a id="{{ attachment.Name }}" class="attachment" target="_blank" href="{{root_path}}/{{ saved_path }}/{{ attachment.filename }}">
             <span><i class="fa fa-paperclip"></i> {{ attachment.Name }}</span>
         </a>
         {% endfor %}

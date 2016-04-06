@@ -36,9 +36,21 @@ def make_api_call(method, url, token, user_email, payload = None, parameters = N
 
     return response
     
-def get_my_messages(access_token, user_email, query_parameters=None):
-    #get_messages_url = outlook_api_endpoint.format('/Me/Messages')
-    get_messages_url = outlook_api_endpoint.format('/me/mailfolders/inbox/messages')
+def get_my_messages(access_token, user_email, query_parameters=None, pasta="entrada"):
+    # get_messages_url = outlook_api_endpoint.format('/me/messages')
+    
+    # Arquivo morto = 1062
+    if pasta.lower() == "arquivo":
+        get_messages_url = outlook_api_endpoint.format('/me/mailfolders/AQMkADAwATM0MDAAMS1iMzE0LTA2NGUtMDACLTAwCgAuAAAD0e16KTeVlQBIqJON0MXzQV4BANnNRXyjA3FFuMKDw2JZ_X8AAAIBRwAAAA==/messages')
+    
+    # Caixa de entrada = 55
+    if pasta.lower() == "entrada":
+        get_messages_url = outlook_api_endpoint.format('/me/mailfolders/AQMkADAwATM0MDAAMS1iMzE0LTA2NGUtMDACLTAwCgAuAAAD0e16KTeVlQBIqJON0MXzQV4BANnNRXyjA3FFuMKDw2JZ_X8AAAIBDAAAAA==/messages')
+    
+    # Itens enviados = 341
+    if pasta.lower() == "enviadas":
+        get_messages_url = outlook_api_endpoint.format('/me/mailfolders/AQMkADAwATM0MDAAMS1iMzE0LTA2NGUtMDACLTAwCgAuAAAD0e16KTeVlQBIqJON0MXzQV4BANnNRXyjA3FFuMKDw2JZ_X8AAAIBCQAAAA==/messages')
+    
     # Use OData query parameters to control the results
     #  - Only first 10 results returned
     #  - Only return the ReceivedDateTime, Subject, and From fields
