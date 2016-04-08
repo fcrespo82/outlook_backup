@@ -29,26 +29,27 @@ def gettoken(request):
     redirect_uri = request.build_absolute_uri(reverse('outlook_backup_app:gettoken'))
     token = get_token_from_code(auth_code, redirect_uri)
     access_token = token['access_token']
-    user_email = 'email'#get_user_email_from_id_token(token['id_token'])
+    # user_email = 'email'
+    user_email = get_user_email_from_id_token(token['id_token'])
 
     # Save the token in the session
     request.session['access_token'] = access_token
     request.session['user_email'] = user_email
-    #return HttpResponse('User Email: {0}, Access token: {1}'.format(user_email, access_token))
     return HttpResponseRedirect(reverse('outlook_backup_app:mail'))
 
 def save_messages(request):
+    # threads = []
     access_token = request.session['access_token']
     user_email = request.session['user_email']
     # If there is no token in the session, redirect to home
     if not access_token:
         return HttpResponseRedirect(reverse('outlook_backup_app:home'))
     else:
-        contagem = 20000
+        contagem = 200
         continua = True
         parameters = None
         while continua:
-            for pasta in ["entrada", "arquivo", "enviadas"]:
+            for pasta in ["enviadas"]:
                 messages = get_my_messages(access_token, user_email, parameters, pasta)
                 if messages.has_key('@odata.nextLink'):
                     continua = True
@@ -66,15 +67,19 @@ def save_messages(request):
                 for message in messages_list:
                     message_id = message["Id"]
                     logger.info(message_id)
-                    message_saver_thread = threading.Thread(target=save, args=(request, message_id, pasta))
-                    message_saver_thread.start()
-                    # save(request, message_id, pasta)
+                    # message_saver_thread = threading.Thread(target=save, args=(request, message_id, pasta))
+                    # threads.append(message_saver_thread)
+                    # message_saver_thread.start()
+                    save(request, message_id, pasta)
                 contagem -= 1
                 if contagem == 0:
-                    break
+                    pass
+        # for thread in threads:
+        #     thread.join()
     return HttpResponse(datetime.datetime.now())
 
 def save(request, message_id, pasta):
+    # att_threads = []
     access_token = request.session['access_token']
     user_email = request.session['user_email']
     message = get_message(access_token, user_email, message_id)
@@ -92,19 +97,25 @@ def save(request, message_id, pasta):
             attachment.update({"filename": filename})
             att_content = get_attachment(access_token, user_email, message_id, attachment['Id'])
             att_contents.append(att_content)        
-        attachment_saver_thread = threading.Thread(target=save_attachments, args=(message, att_contents, pasta))
-        attachment_saver_thread.start()
-        # save_attachments(message, att_contents, pasta)
-        
+        # attachment_saver_thread = threading.Thread(target=save_attachments, args=(message, att_contents, pasta))
+        # attachment_saver_thread.start()
+        # att_threads.append(attachment_saver_thread)
+        save_attachments(message, att_contents, pasta)
+    
+    # for thread in att_threads:
+    #     thread.join()
+            
     relative_path = os.path.relpath(DEFAULT_SAVE_DIR, SITE_ROOT)
     context = { 'message': message, 'attachments': attachments, 'root_path': "../..", 'saved_path': "/".join([relative_path, message_name(message)]) }
     rendered = render(request, 'outlook_backup_app/preview.html', context)
     save_message(message, rendered.content, pasta)
+    
 
 
 def mail(request):
     access_token = request.session['access_token']
     user_email = request.session['user_email']
+    pasta="enviadas"
     # If there is no token in the session, redirect to home
     if not access_token:
         return HttpResponseRedirect(reverse('outlook_backup_app:home'))
@@ -113,7 +124,7 @@ def mail(request):
         previous_link=""
         if request.META['QUERY_STRING']:
             parameters = urlparse.parse_qs(request.META['QUERY_STRING'])
-            messages = get_my_messages(access_token, user_email, parameters)
+            messages = get_my_messages(access_token, user_email, parameters, pasta=pasta)
             previous_parameter = parameters
             previous_parameter['$select'] = previous_parameter['$select'][0]
             previous_parameter['$orderby'] = previous_parameter['$orderby'][0]
@@ -122,11 +133,11 @@ def mail(request):
             if int(previous_parameter['$skip']) >= 0:
                 previous_link = urllib.urlencode(previous_parameter)
         else:
-            messages = get_my_messages(access_token, user_email)
+            messages = get_my_messages(access_token, user_email, pasta=pasta)
         if messages.has_key('@odata.nextLink'):
             next_link = urlparse.urlparse(messages['@odata.nextLink']).query
 
-        context = { 'messages': messages['value'], 'next_link': next_link, 'previous_link': previous_link }
+        context = { 'messages': messages['value'], 'next_link': next_link, 'previous_link': previous_link, 'pasta': pasta }
         return render(request, 'outlook_backup_app/mail.html', context)
     
 def preview(request):
@@ -134,6 +145,8 @@ def preview(request):
     user_email = request.session['user_email']
 
     message_id = request.GET['message_id']
+    
+    pasta = request.GET['pasta']
     
     message = get_message(access_token, user_email, message_id)
     
@@ -153,17 +166,17 @@ def preview(request):
     
     relative_path = os.path.relpath(DEFAULT_SAVE_DIR, SITE_ROOT)
 
-    context = { 'message': message, 'attachments': attachments, 'root_path': "", 'saved_path': "/".join([relative_path, message_name(message)]) }
+    context = { 'message': message, 'attachments': attachments, 'root_path': "", 'saved_path': "/".join([relative_path, pasta, message_name(message)]) }
     
     response = render(request, 'outlook_backup_app/preview.html', context)
     
-    save_context = { 'message': message, 'attachments': attachments, 'root_path': "../..", 'saved_path': "/".join([relative_path, message_name(message)]) }
+    save_context = { 'message': message, 'attachments': attachments, 'root_path': "../..", 'saved_path': "/".join([relative_path, pasta, message_name(message)]) }
     rendered = render(request, 'outlook_backup_app/preview.html', save_context)
     
-    save_message(message, rendered.content)
+    save_message(message, rendered.content, pasta)
     
     if attachments:
-        save_attachments(message, att_contents)
+        save_attachments(message, att_contents, pasta)
     
     return response
 

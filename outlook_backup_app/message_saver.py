@@ -10,8 +10,9 @@ def save_file(filename, content, pasta):
     if not os.path.exists(final_dir_path):
         os.makedirs(final_dir_path)
         os.chmod(final_dir_path, 0777)
-    with open(final_full_path, mode="w") as the_file:
-        the_file.write(content)
+    if not os.path.exists(final_full_path):
+        with open(final_full_path, mode="w") as the_file:
+            the_file.write(content)
 
 def save_attachments(message, attachment_list, pasta):
     attachment_dir = message_name(message)

@@ -17,7 +17,8 @@ token_url = '{0}{1}'.format(authority, '/common/oauth2/v2.0/token')
 
 # The scopes required by the app
 scopes = [ 'openid',
-           'https://outlook.office.com/mail.read' ]
+           'https://outlook.office.com/mail.read',
+           'https://outlook.office.com/contacts.read' ]
 
 def get_signin_url(redirect_uri):
   # Build the query parameters for the signin url
@@ -68,5 +69,5 @@ def get_user_email_from_id_token(id_token):
   
   # Load decoded token into a JSON object
   jwt = json.loads(decoded)
-  print(jwt)
-  return jwt['preferred_username']
+  
+  return jwt['preferred_username'] if jwt.has_key('preferred_username') else 'email'

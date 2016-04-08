@@ -58,7 +58,7 @@
             <td>{{ message.Subject }}</td>
             <td>{{ message.ReceivedDateTime|parse_date:"%Y-%m-%dT%H:%M:%SZ"|date:"d/m/Y H:i:s" }}</td>
             <td>{% url 'outlook_backup_app:preview' as the_url %}
-                <a href="{{ the_url }}?message_id={{ message.Id }}">Ver</a>
+                <a href="{{ the_url }}?message_id={{ message.Id }}&pasta={{ pasta }}">Ver</a>
             </td>
             <td>{{ message.HasAttachments }}</td>
         </tr>
